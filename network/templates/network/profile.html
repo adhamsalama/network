@@ -1,0 +1,97 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+    <div class="jumbotron jumbotron-fluid text-center">
+      <div class="container">
+        <h1 class="display-4">{{ profile_user.username }}</h1>
+        <p class="lead">Email: {{ profile_user.email }}
+        <br>
+        Created on: {{ profile_user.date_joined }}
+        <br>
+        Following: {{ following }}
+        <br>
+        Followers: <span id="followers_count">{{ followers }}</span>
+        </p>
+        {% if user.is_authenticated %}
+            {% if user.username != profile_user.username and logged_user_follows_this_profile == False %}
+                <form action="{% url 'follow_unfollow' %}" method="POST" id="follow_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="followed_user_id" id="followed_user_id" value="{{ profile_user.id }}">
+                    <input type="hidden" name="action" value="follow" id="follow_action">
+                    <button type="submit" class="btn btn-primary" id="follow_unfollow_button">Follow</submit>
+                </form>
+            {% elif user.username != profile_user.username and logged_user_follows_this_profile == True %}
+                <form action="{% url 'follow_unfollow' %}" method="POST" id="follow_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="followed_user_id" id="followed_user_id" value="{{ profile_user.id }}">
+                    <input type="hidden" name="action" value="unfollow" id="follow_action">
+                    <button type="submit" class="btn btn-primary" id="follow_unfollow_button">Unfollow</submit>
+                </form>
+            {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% for post in posts %}
+        <div class="alert alert-secondary" role="alert" id="post-{{ post.id }}">
+            <a href={% url 'profile' post.user.username %}>{{ post.user }}</a>
+            <br>
+            <small>{{ post.date }}</small>
+            <br>
+            &#10084;<span id="post-{{ post.id }}-likes">{{ post.likes.all.count }}</span>
+            {% if user in post.likes.all %}
+                <button type="submit" class="btn btn-primary btn-sm ml-2 like_unlike_button">Unlike</button>
+            {% else %}
+                <button type="submit" class="btn btn-primary btn-sm ml-2 like_unlike_button">Like</button>
+            {% endif %}
+            <div class="post-{{post.id}}-text">
+                {{ post.text }}
+            </div>
+            <br>
+            {% if post.user == user %}
+                <div class="edit-post">
+                    
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <input type="hidden" name="new_text" class="new_text">
+                    <button type="submit" class="btn btn-primary btn-sm edit-post-button">Edit</button>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+{% if page_obj %}
+    <nav aria-label="Page navigation example">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+    {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+    {% endif %}
+    {% for num in paginator.page_range %}
+        {% if num == page_obj.number %}
+            <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Next</a></li>
+    {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+    {% endif %}
+  </ul>
+    </nav>
+{% else %}
+    <h1>No posts.</h1>
+{% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/profile_follower.js' %}"></script>
+{% endblock  %}

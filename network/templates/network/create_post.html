@@ -1,0 +1,13 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h1>Create New Post</h1>
+    <form action="{% url 'create_post' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="text">Text</label>
+            <textarea id="text" name="text" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
